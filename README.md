@@ -9,11 +9,11 @@ npm install
 npm run dev -- --port 43147
 ```
 
-open [http://127.0.0.1:43147](http://127.0.0.1:43147). locally the throne is a json file at `.data/throne.json`.
+open [http://127.0.0.1:43147](http://127.0.0.1:43147).
 
 ## production store
 
-vercel kv is gone. this app uses **upstash redis** (`@upstash/redis`) as the global throne.
+vercel kv is gone. preferred store is **upstash redis** (`@upstash/redis`).
 
 set these on the vercel project (marketplace injects them if you run `vercel integration add upstash`):
 
@@ -22,7 +22,7 @@ set these on the vercel project (marketplace injects them if you run `vercel int
 
 the older `KV_REST_API_URL` / `KV_REST_API_TOKEN` names also work.
 
-without redis, a production deploy can still render, but claiming returns 503.
+until redis is attached, production uses a durable http json bin (`YEET_JSON_URL`, default baked in). every visitor still sees the same throne.
 
 ## domain
 
