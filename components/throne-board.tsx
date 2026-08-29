@@ -11,12 +11,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { uptimeLabel } from "@/lib/time"
-import type { Throne } from "@/lib/throne"
+import { longestLine, uptimeLabel } from "@/lib/time"
+import type { ReignRecord } from "@/lib/throne"
 
 type ThroneView = {
   name: string | null
   claimedAt: number | null
+  longest: ReignRecord | null
 }
 
 type Props = {
@@ -67,7 +68,7 @@ export function ThroneBoard({ initial }: Props) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(raw ? { name: raw } : {}),
       })
-      const payload = (await response.json()) as Throne | { error?: string }
+      const payload = (await response.json()) as ThroneView | { error?: string }
 
       if (!response.ok) {
         setError(
@@ -108,9 +109,16 @@ export function ThroneBoard({ initial }: Props) {
         <h1 className="max-w-[18ch] text-5xl font-medium tracking-tight break-words lowercase sm:text-7xl">
           {displayName}
         </h1>
-        <p className="text-base text-muted-foreground lowercase tabular-nums sm:text-lg">
-          {status}
-        </p>
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-base text-muted-foreground lowercase tabular-nums sm:text-lg">
+            {status}
+          </p>
+          {throne.longest ? (
+            <p className="max-w-[28ch] text-xs text-muted-foreground/80 lowercase tabular-nums">
+              {longestLine(throne.longest.name, throne.longest.heldMs)}
+            </p>
+          ) : null}
+        </div>
       </main>
 
       <footer className="mx-auto flex w-full max-w-sm flex-col items-center gap-5">
