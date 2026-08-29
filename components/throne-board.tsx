@@ -159,11 +159,11 @@ export function ThroneBoard({ initial }: Props) {
             {error ? (
               <p className="text-sm text-destructive lowercase">{error}</p>
             ) : null}
-            <DialogFooter className="gap-2 border-0 bg-transparent p-0 sm:justify-between">
+            <DialogFooter className="gap-3 border-0 bg-transparent p-0 sm:justify-between">
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 flex-1 rounded-full lowercase"
+                className="h-14 min-h-14 w-full flex-1 rounded-full px-5 py-4 text-lg lowercase"
                 disabled={busy}
                 onClick={() => void claim(null)}
               >
@@ -171,7 +171,7 @@ export function ThroneBoard({ initial }: Props) {
               </Button>
               <Button
                 type="submit"
-                className="h-11 flex-1 rounded-full lowercase"
+                className="h-14 min-h-14 w-full flex-1 rounded-full px-5 py-4 text-lg lowercase"
                 disabled={busy}
               >
                 {busy ? "yeeting" : "take it"}
