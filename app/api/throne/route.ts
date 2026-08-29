@@ -1,15 +1,19 @@
 import { NextResponse } from "next/server"
 import { resolveName } from "@/lib/names"
-import { getThrone, setThrone, storeKind } from "@/lib/throne"
+import { claimThrone, getThrone, storeKind } from "@/lib/throne"
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
-  const throne = await getThrone()
-  return NextResponse.json({
+function thronePayload(throne: Awaited<ReturnType<typeof getThrone>>) {
+  return {
     name: throne?.name ?? null,
     claimedAt: throne?.claimedAt ?? null,
-  })
+    longest: throne?.longest ?? null,
+  }
+}
+
+export async function GET() {
+  return NextResponse.json(thronePayload(await getThrone()))
 }
 
 export async function POST(request: Request) {
@@ -32,10 +36,6 @@ export async function POST(request: Request) {
       ? (body as { name?: unknown }).name
       : undefined
 
-  const throne = await setThrone({
-    name: resolveName(offered),
-    claimedAt: Date.now(),
-  })
-
-  return NextResponse.json(throne)
+  const throne = await claimThrone(resolveName(offered))
+  return NextResponse.json(thronePayload(throne))
 }

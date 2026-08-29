@@ -26,3 +26,7 @@ export function uptimeLabel(claimedAt: number, now = Date.now()): string {
   if (duration === "just now") return "just now"
   return `up for ${duration}`
 }
+
+export function longestLine(name: string, heldMs: number): string {
+  return `longest so far: ${name} · ${formatUptime(heldMs)}`
+}

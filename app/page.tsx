@@ -11,6 +11,7 @@ export default async function Home() {
       initial={{
         name: throne?.name ?? null,
         claimedAt: throne?.claimedAt ?? null,
+        longest: throne?.longest ?? null,
       }}
     />
   )

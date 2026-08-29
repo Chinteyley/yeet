@@ -2,9 +2,15 @@ import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { Redis } from "@upstash/redis"
 
+export type ReignRecord = {
+  name: string
+  heldMs: number
+}
+
 export type Throne = {
   name: string
   claimedAt: number
+  longest: ReignRecord | null
 }
 
 const THRONE_KEY = "yeet:throne"
@@ -35,17 +41,37 @@ export function storeKind(): StoreKind {
   return "none"
 }
 
-function isThrone(value: unknown): value is Throne {
-  if (!value || typeof value !== "object") return false
+function parseLongest(value: unknown): ReignRecord | null {
+  if (!value || typeof value !== "object") return null
   const record = value as Record<string, unknown>
-  return typeof record.name === "string" && typeof record.claimedAt === "number"
+  const longest = record.longest
+  if (!longest || typeof longest !== "object") return null
+  const entry = longest as Record<string, unknown>
+  if (typeof entry.name !== "string" || typeof entry.heldMs !== "number") {
+    return null
+  }
+  if (!entry.name || entry.heldMs < 0) return null
+  return { name: entry.name, heldMs: entry.heldMs }
+}
+
+function parseThrone(value: unknown): Throne | null {
+  if (!value || typeof value !== "object") return null
+  const record = value as Record<string, unknown>
+  if (typeof record.name !== "string" || typeof record.claimedAt !== "number") {
+    return null
+  }
+  return {
+    name: record.name,
+    claimedAt: record.claimedAt,
+    longest: parseLongest(value),
+  }
 }
 
 async function readLocal(): Promise<Throne | null> {
   try {
     const raw = await readFile(LOCAL_FILE, "utf8")
     const parsed: unknown = JSON.parse(raw)
-    return isThrone(parsed) ? parsed : null
+    return parseThrone(parsed)
   } catch {
     return null
   }
@@ -63,7 +89,7 @@ async function readJsonBin(): Promise<Throne | null> {
   })
   if (!response.ok) return null
   const parsed: unknown = await response.json()
-  return isThrone(parsed) ? parsed : null
+  return parseThrone(parsed)
 }
 
 async function writeJsonBin(throne: Throne): Promise<Throne> {
@@ -82,8 +108,7 @@ async function writeJsonBin(throne: Throne): Promise<Throne> {
 export async function getThrone(): Promise<Throne | null> {
   const redis = redisFromEnv()
   if (redis) {
-    const value = await redis.get<Throne>(THRONE_KEY)
-    return isThrone(value) ? value : null
+    return parseThrone(await redis.get(THRONE_KEY))
   }
 
   if (storeKind() === "json") {
@@ -113,4 +138,23 @@ export async function setThrone(throne: Throne): Promise<Throne> {
   }
 
   throw new Error("no durable store")
+}
+
+export async function claimThrone(name: string): Promise<Throne> {
+  const current = await getThrone()
+  const now = Date.now()
+  let longest = current?.longest ?? null
+
+  if (current) {
+    const heldMs = now - current.claimedAt
+    if (!longest || heldMs > longest.heldMs) {
+      longest = { name: current.name, heldMs }
+    }
+  }
+
+  return setThrone({
+    name,
+    claimedAt: now,
+    longest,
+  })
 }
