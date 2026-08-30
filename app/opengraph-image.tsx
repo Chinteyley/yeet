@@ -7,6 +7,15 @@ export const contentType = "image/png"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
+function nameFontSize(name: string): number {
+  const length = name.length
+  if (length <= 8) return 128
+  if (length <= 12) return 100
+  if (length <= 16) return 80
+  if (length <= 20) return 64
+  return 52
+}
+
 export default async function Image() {
   const throne = await getThrone()
   const name = throne?.name ?? "nobody"
@@ -20,38 +29,56 @@ export default async function Image() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
           background: "#0a0a0a",
-          color: "#f5f5f5",
-          padding: "72px 80px",
+          color: "#fafafa",
         }}
       >
         <div
           style={{
             display: "flex",
-            fontSize: 28,
-            letterSpacing: 4,
+            paddingTop: 44,
+            paddingLeft: 52,
+            fontSize: 22,
+            letterSpacing: 2,
             color: "#737373",
             textTransform: "lowercase",
           }}
         >
           yeet
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+        <div
+          style={{
+            display: "flex",
+            flex: 1,
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingLeft: 72,
+            paddingRight: 72,
+            paddingBottom: 36,
+          }}
+        >
           <div
             style={{
-              fontSize: name.length > 14 ? 72 : 96,
+              display: "flex",
+              justifyContent: "center",
+              maxWidth: 1056,
+              fontSize: nameFontSize(name),
               fontWeight: 500,
-              letterSpacing: -2,
-              lineHeight: 1.05,
+              letterSpacing: -3,
+              lineHeight: 1,
               textTransform: "lowercase",
+              textAlign: "center",
             }}
           >
             {name}
           </div>
           <div
             style={{
-              fontSize: 32,
+              display: "flex",
+              marginTop: 20,
+              fontSize: 34,
               color: "#a3a3a3",
               textTransform: "lowercase",
             }}
@@ -59,15 +86,44 @@ export default async function Image() {
             {status}
           </div>
         </div>
+
         <div
           style={{
             display: "flex",
-            fontSize: 24,
-            color: "#525252",
-            textTransform: "lowercase",
+            flexDirection: "column",
+            alignItems: "center",
+            paddingBottom: 52,
           }}
         >
-          last click owns the page
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: 84,
+              paddingLeft: 96,
+              paddingRight: 96,
+              borderRadius: 999,
+              background: "#ffffff",
+              color: "#0a0a0a",
+              fontSize: 38,
+              fontWeight: 500,
+              textTransform: "lowercase",
+            }}
+          >
+            yeet
+          </div>
+          <div
+            style={{
+              display: "flex",
+              marginTop: 18,
+              fontSize: 20,
+              color: "#737373",
+              textTransform: "lowercase",
+            }}
+          >
+            last click owns the page
+          </div>
         </div>
       </div>
     ),

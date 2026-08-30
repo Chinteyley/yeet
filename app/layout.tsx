@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { getThrone } from "@/lib/throne"
-import { siteUrl } from "@/lib/site"
+import { ogImageUrl, siteUrl } from "@/lib/site"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -29,9 +29,11 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = throne
     ? `${name} owns this page`
     : "last click owns the page"
+  const origin = siteUrl()
+  const image = ogImageUrl()
 
   return {
-    metadataBase: new URL(siteUrl()),
+    metadataBase: new URL(origin),
     title,
     description,
     applicationName: "yeet",
@@ -39,14 +41,26 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: throne ? `${name} is up` : "empty throne",
       description: "last click owns the page",
+      url: origin,
       siteName: "yeet",
       type: "website",
       locale: "en_US",
+      images: [
+        {
+          url: image,
+          secureUrl: image,
+          width: 1200,
+          height: 630,
+          type: "image/png",
+          alt: "yeet. last click owns the page.",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: throne ? `${name} is up` : "empty throne",
       description: "last click owns the page",
+      images: [image],
     },
   }
 }
