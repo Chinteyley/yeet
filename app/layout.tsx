@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import { getThrone } from "@/lib/throne"
 import { ogImageUrl, siteUrl } from "@/lib/site"
 import "./globals.css"
 
@@ -14,7 +13,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
-export const dynamic = "force-dynamic"
+const origin = siteUrl()
+const image = ogImageUrl()
 
 export const viewport: Viewport = {
   themeColor: "#0a0a0a",
@@ -22,47 +22,36 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const throne = await getThrone()
-  const name = throne?.name ?? "nobody"
-  const title = "yeet"
-  const description = throne
-    ? `${name} owns this page`
-    : "last click owns the page"
-  const origin = siteUrl()
-  const image = ogImageUrl()
-
-  return {
-    metadataBase: new URL(origin),
-    title,
-    description,
-    applicationName: "yeet",
-    robots: { index: true, follow: true },
-    openGraph: {
-      title: throne ? `${name} is up` : "empty throne",
-      description: "last click owns the page",
-      url: origin,
-      siteName: "yeet",
-      type: "website",
-      locale: "en_US",
-      images: [
-        {
-          url: image,
-          secureUrl: image,
-          width: 1200,
-          height: 630,
-          type: "image/png",
-          alt: "yeet. last click owns the page.",
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: throne ? `${name} is up` : "empty throne",
-      description: "last click owns the page",
-      images: [image],
-    },
-  }
+export const metadata: Metadata = {
+  metadataBase: new URL(origin),
+  title: "yeet",
+  description: "last click owns the page",
+  applicationName: "yeet",
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: "yeet",
+    description: "last click owns the page",
+    url: origin,
+    siteName: "yeet",
+    type: "website",
+    locale: "en_US",
+    images: [
+      {
+        url: image,
+        secureUrl: image,
+        width: 1200,
+        height: 630,
+        type: "image/png",
+        alt: "yeet. last click owns the page.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "yeet",
+    description: "last click owns the page",
+    images: [image],
+  },
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

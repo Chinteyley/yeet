@@ -1,26 +1,10 @@
 import { ImageResponse } from "next/og"
-import { getThrone } from "@/lib/throne"
 
 export const alt = "yeet. last click owns the page."
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
-export const dynamic = "force-dynamic"
-export const revalidate = 0
 
-function nameFontSize(name: string): number {
-  const length = name.length
-  if (length <= 8) return 128
-  if (length <= 12) return 100
-  if (length <= 16) return 80
-  if (length <= 20) return 64
-  return 52
-}
-
-export default async function Image() {
-  const throne = await getThrone()
-  const name = throne?.name ?? "nobody"
-  const status = throne ? "is up" : "empty throne"
-
+export default function Image() {
   return new ImageResponse(
     (
       <div
@@ -63,27 +47,25 @@ export default async function Image() {
             style={{
               display: "flex",
               justifyContent: "center",
-              maxWidth: 1056,
-              fontSize: nameFontSize(name),
+              fontSize: 128,
               fontWeight: 500,
               letterSpacing: -3,
               lineHeight: 1,
               textTransform: "lowercase",
-              textAlign: "center",
             }}
           >
-            {name}
+            yeet
           </div>
           <div
             style={{
               display: "flex",
               marginTop: 20,
-              fontSize: 34,
+              fontSize: 32,
               color: "#a3a3a3",
               textTransform: "lowercase",
             }}
           >
-            {status}
+            last click owns the page
           </div>
         </div>
 
@@ -92,7 +74,7 @@ export default async function Image() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            paddingBottom: 52,
+            paddingBottom: 56,
           }}
         >
           <div
@@ -112,17 +94,6 @@ export default async function Image() {
             }}
           >
             yeet
-          </div>
-          <div
-            style={{
-              display: "flex",
-              marginTop: 18,
-              fontSize: 20,
-              color: "#737373",
-              textTransform: "lowercase",
-            }}
-          >
-            last click owns the page
           </div>
         </div>
       </div>
