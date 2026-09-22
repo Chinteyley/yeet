@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "test": "node --experimental-strip-types --test lib/origin.test.ts"
+    "lint": "eslint"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.3",

@@ -3,8 +3,6 @@ import { NextResponse } from "next/server"
 import { claimOriginAllowed } from "@/lib/origin"
 import { redisFromEnv } from "@/lib/redis"
 
-export { claimOriginAllowed }
-
 const CLAIM_WINDOW_SEC = 60
 const CLAIM_LIMIT = 20
 const RATE_KEY_PREFIX = "yeet:rl:claim:"

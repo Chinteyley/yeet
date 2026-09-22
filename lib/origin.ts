@@ -1,4 +1,4 @@
-import { siteUrl } from "./site"
+import { siteUrl } from "@/lib/site"
 
 export function allowedClaimOrigins(request: Request): Set<string> {
   const origins = new Set<string>()
