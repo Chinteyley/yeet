@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server"
+import {
+  assertClaimOrigin,
+  assertClaimRateLimit,
+  assertClaimToken,
+} from "@/lib/claim-guard"
 import { resolveName } from "@/lib/names"
 import { claimThrone, getThrone, storeKind } from "@/lib/throne"
 
@@ -23,6 +28,15 @@ export async function POST(request: Request) {
       { status: 503 },
     )
   }
+
+  const tokenFailure = assertClaimToken(request)
+  if (tokenFailure) return tokenFailure.response
+
+  const originFailure = assertClaimOrigin(request)
+  if (originFailure) return originFailure.response
+
+  const rateFailure = await assertClaimRateLimit(request)
+  if (rateFailure) return rateFailure.response
 
   let body: unknown = {}
   try {

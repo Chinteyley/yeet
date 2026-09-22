@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
-import { Redis } from "@upstash/redis"
+import { redisFromEnv } from "@/lib/redis"
 
 export type ReignRecord = {
   name: string
@@ -16,29 +16,31 @@ export type Throne = {
 const THRONE_KEY = "yeet:throne"
 const LOCAL_FILE = path.join(process.cwd(), ".data", "throne.json")
 
-// Durable HTTP JSON bin used when Upstash Redis is not provisioned.
-// GET is cache-busted; Redis remains the preferred store.
-const JSON_BIN =
-  process.env.YEET_JSON_URL ||
-  "https://extendsclass.com/api/json-storage/bin/aceecac"
-
 export type StoreKind = "redis" | "json" | "file" | "none"
 
-function redisFromEnv(): Redis | null {
-  const url =
-    process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
-  const token =
-    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
-
-  if (!url || !token) return null
-  return new Redis({ url, token })
+function jsonBinUrl(): string | null {
+  const raw = process.env.YEET_JSON_URL?.trim()
+  if (!raw) return null
+  try {
+    const parsed = new URL(raw)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null
+    }
+    return raw
+  } catch {
+    return null
+  }
 }
 
 export function storeKind(): StoreKind {
   if (redisFromEnv()) return "redis"
-  if (JSON_BIN) return "json"
-  if (!process.env.VERCEL) return "file"
-  return "none"
+
+  // Vercel (prod and preview) never falls through to a public JSON bin or
+  // ephemeral local file. Missing Redis credentials fail closed.
+  if (process.env.VERCEL) return "none"
+
+  if (jsonBinUrl()) return "json"
+  return "file"
 }
 
 function parseLongest(value: unknown): ReignRecord | null {
@@ -84,7 +86,9 @@ async function writeLocal(throne: Throne): Promise<Throne> {
 }
 
 async function readJsonBin(): Promise<Throne | null> {
-  const response = await fetch(`${JSON_BIN}?t=${Date.now()}`, {
+  const url = jsonBinUrl()
+  if (!url) return null
+  const response = await fetch(`${url}?t=${Date.now()}`, {
     cache: "no-store",
   })
   if (!response.ok) return null
@@ -93,7 +97,11 @@ async function readJsonBin(): Promise<Throne | null> {
 }
 
 async function writeJsonBin(throne: Throne): Promise<Throne> {
-  const response = await fetch(JSON_BIN, {
+  const url = jsonBinUrl()
+  if (!url) {
+    throw new Error("json store write failed")
+  }
+  const response = await fetch(url, {
     method: "PUT",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(throne),
@@ -106,38 +114,48 @@ async function writeJsonBin(throne: Throne): Promise<Throne> {
 }
 
 export async function getThrone(): Promise<Throne | null> {
-  const redis = redisFromEnv()
-  if (redis) {
-    return parseThrone(await redis.get(THRONE_KEY))
+  const kind = storeKind()
+  switch (kind) {
+    case "redis": {
+      const redis = redisFromEnv()
+      if (!redis) return null
+      return parseThrone(await redis.get(THRONE_KEY))
+    }
+    case "json":
+      return readJsonBin()
+    case "file":
+      return readLocal()
+    case "none":
+      return null
+    default: {
+      const _exhaustive: never = kind
+      return _exhaustive
+    }
   }
-
-  if (storeKind() === "json") {
-    return readJsonBin()
-  }
-
-  if (storeKind() === "file") {
-    return readLocal()
-  }
-
-  return null
 }
 
 export async function setThrone(throne: Throne): Promise<Throne> {
-  const redis = redisFromEnv()
-  if (redis) {
-    await redis.set(THRONE_KEY, throne)
-    return throne
+  const kind = storeKind()
+  switch (kind) {
+    case "redis": {
+      const redis = redisFromEnv()
+      if (!redis) {
+        throw new Error("no durable store")
+      }
+      await redis.set(THRONE_KEY, throne)
+      return throne
+    }
+    case "json":
+      return writeJsonBin(throne)
+    case "file":
+      return writeLocal(throne)
+    case "none":
+      throw new Error("no durable store")
+    default: {
+      const _exhaustive: never = kind
+      throw new Error(String(_exhaustive))
+    }
   }
-
-  if (storeKind() === "json") {
-    return writeJsonBin(throne)
-  }
-
-  if (storeKind() === "file") {
-    return writeLocal(throne)
-  }
-
-  throw new Error("no durable store")
 }
 
 export async function claimThrone(name: string): Promise<Throne> {
